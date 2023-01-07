@@ -1,0 +1,34 @@
+name: Rust
+on: ["push", "pull_request"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install stable toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt
+        override: true
+    - name: Run cargo-tarpaulin
+      uses: actions-rs/tarpaulin@v0.1
+      with:
+        version: '0.15.0'
+        args: '--ignore-tests --out Lcov'
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: './lcov.info'
+    - name: Lint  with clippy
+      run: cargo clippy -- -D warnings
+    - name: Check formatting
+      run: cargo fmt -- --check
+
